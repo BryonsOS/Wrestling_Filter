@@ -308,6 +308,13 @@
 
   function visibleVideos() {
     let list = sortVideos(state.videos, state.sort);
+    const exclude = state.current?.show?.exclude;
+    if (exclude?.length) {
+      list = list.filter((v) => {
+        const t = v.title.toLowerCase();
+        return !exclude.some((w) => t.includes(w.toLowerCase()));
+      });
+    }
     if (state.hideWatched) list = list.filter((v) => !state.watched.has(v.id));
     return list;
   }
@@ -333,13 +340,16 @@
           <div class="card-title">${escapeHtml(v.title)}</div>
           <div class="card-channel">${escapeHtml(v.channel)}</div>
         </div>
-        <button class="watch-toggle" title="Toggle watched">✓</button>`;
+        <button class="watch-toggle" title="Toggle watched">✓</button>
+        <a class="yt-link" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"
+           title="Open in YouTube app (cast to TV from there)">▶ YouTube</a>`;
       card.querySelector(".thumb-wrap").addEventListener("click", () => playVideo(v));
       card.querySelector(".card-title").addEventListener("click", () => playVideo(v));
       card.querySelector(".watch-toggle").addEventListener("click", (e) => {
         e.stopPropagation();
         toggleWatched(v.id);
       });
+      card.querySelector(".yt-link").addEventListener("click", (e) => e.stopPropagation());
       grid.appendChild(card);
     }
 
@@ -369,6 +379,7 @@
     const modal = $("#player-modal");
     $("#player-frame").src = `https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0`;
     $("#player-title").textContent = video.title;
+    $("#player-youtube").href = `https://www.youtube.com/watch?v=${video.id}`;
     modal.dataset.videoId = video.id;
     modal.hidden = false;
     document.body.classList.add("modal-open");

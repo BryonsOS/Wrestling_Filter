@@ -96,8 +96,8 @@ const CATALOG = [
     icon: "🎬",
     color: "#e64a19",
     shows: [
-      { id: "xwf-tapings", name: "The Universal Studios Tapings", query: "XWF Xtreme Wrestling Federation 2001 full", sort: "chrono" },
-      { id: "xwf-matches", name: "Matches & Segments", query: "XWF wrestling Hogan Piper Universal full match", sort: "chrono" },
+      { id: "xwf-tapings", name: "The Universal Studios Tapings", query: "\"Xtreme Wrestling Federation\" 2001 Universal Studios -backyard", exclude: ["backyard", "byw"], sort: "chrono" },
+      { id: "xwf-matches", name: "Matches & Segments", query: "\"Xtreme Wrestling Federation\" Jimmy Hart 2001 2002 -backyard", exclude: ["backyard", "byw"], sort: "chrono" },
     ],
   },
   {
