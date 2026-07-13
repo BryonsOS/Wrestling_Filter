@@ -55,6 +55,22 @@ No install needed — it's a static page:
   branch and `/ (root)`. Your app will be live at
   `https://<your-username>.github.io/Wrestling_Filter/`.
 
+## On your phone
+
+The app is a PWA (progressive web app), so once it's on GitHub Pages you can
+install it like a real app:
+
+1. Open the GitHub Pages URL in your phone browser.
+2. **Android/Chrome:** tap the ⋮ menu → **Add to Home screen** (Chrome may
+   also offer an "Install app" banner). **iPhone/Safari:** tap Share →
+   **Add to Home Screen**.
+3. Launch it from the icon — it opens fullscreen with no browser chrome,
+   caches itself for instant startup, and remembers your API key and
+   watched-episode history on that device.
+
+You'll be asked for the API key once per device (it's stored locally, never
+synced anywhere).
+
 ## Notes
 
 - Chronological sort works best when uploaders put dates in titles (most

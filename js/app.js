@@ -455,6 +455,11 @@
     $("#menu-btn").addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
 
     if (!state.apiKey) showSetupNotice();
+
+    // PWA: works only over https (e.g. GitHub Pages), skipped on file://
+    if ("serviceWorker" in navigator && location.protocol === "https:") {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
   }
 
   document.addEventListener("DOMContentLoaded", init);
