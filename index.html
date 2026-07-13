@@ -15,7 +15,7 @@
 <body>
   <header id="topbar">
     <button id="menu-btn" aria-label="Menu">☰</button>
-    <h1>🤼 Wrestling Filter</h1>
+    <h1 id="home-link" title="Home">🤼 Wrestling Filter</h1>
     <span class="tagline">YouTube, sorted by promotion &amp; era</span>
     <button id="settings-btn" aria-label="Settings">⚙️ Settings</button>
   </header>
@@ -40,9 +40,11 @@
         <button id="setup-open-settings" class="primary">Open Settings</button>
       </div>
 
-      <div id="show-header">
+      <div id="home"></div>
+
+      <div id="show-header" hidden>
         <span id="show-promo"></span>
-        <h2 id="show-title">Pick a promotion on the left to start</h2>
+        <h2 id="show-title"></h2>
       </div>
 
       <div id="controls" hidden>

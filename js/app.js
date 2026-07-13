@@ -218,6 +218,9 @@
     state.sort = show.sort || "chrono";
     state.videos = [];
     state.nextPageToken = null;
+    $("#home").hidden = true;
+    $("#show-header").hidden = false;
+    localStorage.setItem("wf_last_show", JSON.stringify({ promoId: promo.id, showId: show.id }));
     renderShowHeader();
     renderGrid();
 
@@ -323,6 +326,69 @@
     renderSidebar();
   }
 
+  // ---------- home / landing page ----------
+
+  function findShow(promoId, showId) {
+    const promo = catalogWithCustom().find((p) => p.id === promoId);
+    const show = promo?.shows.find((s) => s.id === showId);
+    return show ? { promo, show } : null;
+  }
+
+  function goHome() {
+    state.current = null;
+    $("#show-header").hidden = true;
+    $("#controls").hidden = true;
+    $("#grid").innerHTML = "";
+    $("#load-more").hidden = true;
+    $("#empty-note").hidden = true;
+    setStatus("");
+    renderHome();
+    $("#home").hidden = false;
+  }
+
+  function renderHome() {
+    const home = $("#home");
+    const catalog = catalogWithCustom();
+    const totalShows = catalog.reduce((n, p) => n + p.shows.length, 0);
+    const last = JSON.parse(localStorage.getItem("wf_last_show") || "null");
+    const resume = last && findShow(last.promoId, last.showId);
+
+    home.innerHTML = `
+      <div class="hero">
+        <h2 class="hero-title">Every promotion.<br>Every era. <span class="hero-accent">In order.</span></h2>
+        <p class="hero-sub">A wrestling-only lens on YouTube — pick your promotion and binge in broadcast order.</p>
+        <div class="hero-stats">
+          <span><b>${catalog.length}</b> promotions</span>
+          <span><b>${totalShows}</b> shows</span>
+          <span><b>${state.watched.size}</b> watched</span>
+        </div>
+        ${resume ? `<button id="resume-btn">▶ Continue watching — <b>${escapeHtml(resume.show.name)}</b> <small>(${escapeHtml(resume.promo.name)})</small></button>` : ""}
+      </div>
+      <div class="promo-grid">
+        ${catalog.map((p) => `
+          <div class="promo-card" style="--promo-color:${p.color}">
+            <div class="promo-card-head">
+              <span class="promo-icon">${p.icon}</span>
+              <h3>${escapeHtml(p.name)}</h3>
+              <span class="promo-count">${p.shows.length || ""}</span>
+            </div>
+            <div class="promo-shows">
+              ${p.shows.map((s) => `<button class="show-pill" data-promo="${p.id}" data-show="${s.id}">${escapeHtml(s.name)}</button>`).join("")}
+              ${p.id === "custom" ? '<button class="show-pill pill-add" data-add="1">+ Add a search</button>' : ""}
+            </div>
+          </div>`).join("")}
+      </div>`;
+
+    home.querySelectorAll(".show-pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        if (pill.dataset.add) { addCustomShow(); renderHome(); return; }
+        const target = findShow(pill.dataset.promo, pill.dataset.show);
+        if (target) openShow(target.promo, target.show);
+      });
+    });
+    home.querySelector("#resume-btn")?.addEventListener("click", () => openShow(resume.promo, resume.show));
+  }
+
   function renderShowHeader() {
     const { promo, show } = state.current;
     $("#show-title").textContent = show.name;
@@ -332,8 +398,35 @@
     $("#sort-select").value = state.sort;
   }
 
+  function isPreferred(channel) {
+    return PREFERRED_CHANNELS.includes(channel.toLowerCase().trim());
+  }
+
+  // When an official channel has an event, drop other uploads that parse
+  // to the same broadcast date — they're the same show from worse sources.
+  function dedupePreferred(list) {
+    const byDate = new Map();
+    for (const v of list) {
+      const dk = parseTitleDate(v.title);
+      if (!dk) continue;
+      if (!byDate.has(dk)) byDate.set(dk, []);
+      byDate.get(dk).push(v);
+    }
+    const drop = new Set();
+    for (const vids of byDate.values()) {
+      if (vids.length > 1 && vids.some((v) => isPreferred(v.channel))) {
+        vids.forEach((v) => { if (!isPreferred(v.channel)) drop.add(v.id); });
+      }
+    }
+    return drop.size ? list.filter((v) => !drop.has(v.id)) : list;
+  }
+
   function visibleVideos() {
     let list = sortVideos(state.videos, state.sort).filter(passesFilters);
+    list = dedupePreferred(list);
+    if (state.sort === "relevance") {
+      list = [...list.filter((v) => isPreferred(v.channel)), ...list.filter((v) => !isPreferred(v.channel))];
+    }
     if (state.hideWatched) list = list.filter((v) => !state.watched.has(v.id));
     return list;
   }
@@ -352,7 +445,10 @@
       card.innerHTML = `
         <div class="thumb-wrap">
           <img loading="lazy" src="${v.thumb}" alt="">
-          <span class="date-badge">${dateLabel}</span>
+          <span class="badge-row">
+            <span class="date-badge">${dateLabel}</span>
+            ${isPreferred(v.channel) ? '<span class="official-badge">★ OFFICIAL</span>' : ""}
+          </span>
           <span class="watched-badge">✓ Watched</span>
         </div>
         <div class="card-body">
@@ -495,7 +591,9 @@
 
   function init() {
     renderSidebar();
+    renderHome();
 
+    $("#home-link").addEventListener("click", goHome);
     $("#settings-btn").addEventListener("click", openSettings);
     $("#setup-open-settings").addEventListener("click", openSettings);
     $("#settings-save").addEventListener("click", saveSettings);
