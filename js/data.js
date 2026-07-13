@@ -16,6 +16,16 @@ const GLOBAL_EXCLUDE = [
 // never comes back in the first place.
 const QUERY_NEGATIVES = " -podcast -review -reaction -preview -recap";
 
+// Official channels get top billing and an OFFICIAL badge. When one of
+// these has an event, other uploads with the same broadcast date in the
+// section are hidden as duplicates. Lowercase, matched exactly.
+const PREFERRED_CHANNELS = [
+  "wwe vault", "wwe", "wwe español",
+  "tna wrestling", "impact wrestling",
+  "major league wrestling", "mlw",
+  "new japan pro-wrestling", "njpw global", "njpwworld",
+];
+
 const CATALOG = [
   {
     id: "wwe",
