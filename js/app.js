@@ -12,6 +12,7 @@
   const state = {
     apiKey: localStorage.getItem("wf_api_key") || "",
     watched: new Set(JSON.parse(localStorage.getItem("wf_watched") || "[]")),
+    hiddenChannels: new Set(JSON.parse(localStorage.getItem("wf_hidden_channels") || "[]")),
     customShows: JSON.parse(localStorage.getItem("wf_custom_shows") || "[]"),
     current: null,          // { promo, show }
     videos: [],
@@ -32,6 +33,10 @@
 
   function saveCustomShows() {
     localStorage.setItem("wf_custom_shows", JSON.stringify(state.customShows));
+  }
+
+  function saveHiddenChannels() {
+    localStorage.setItem("wf_hidden_channels", JSON.stringify([...state.hiddenChannels]));
   }
 
   function cacheGet(key) {
@@ -184,7 +189,28 @@
   // ---------- show loading ----------
 
   function cacheKeyFor(show) {
-    return `${show.id}|${state.longOnly ? "long" : "any"}`;
+    return `v2|${show.id}|${state.longOnly ? "long" : "any"}`;
+  }
+
+  // Talk sections (podcasts/interviews) and the user's own searches skip
+  // the automatic junk filtering — there, "podcast" IS the content.
+  function isFiltered(promo) {
+    return promo && !promo.talk && promo.id !== "custom";
+  }
+
+  function effectiveQuery(promo, show) {
+    return isFiltered(promo) ? show.query + QUERY_NEGATIVES : show.query;
+  }
+
+  function passesFilters(v) {
+    const { promo, show } = state.current || {};
+    if (state.hiddenChannels.has(v.channel)) return false;
+    if (!isFiltered(promo)) return true;
+    const t = v.title.toLowerCase();
+    if (GLOBAL_EXCLUDE.some((w) => t.includes(w))) return false;
+    if (show.exclude?.some((w) => t.includes(w.toLowerCase()))) return false;
+    if (show.require?.length && !show.require.some((w) => t.includes(w.toLowerCase()))) return false;
+    return true;
   }
 
   async function openShow(promo, show) {
@@ -216,7 +242,7 @@
     state.loading = true;
     setStatus("Loading…");
     try {
-      const page = await fetchPage(show.query, fresh ? null : state.nextPageToken);
+      const page = await fetchPage(effectiveQuery(state.current.promo, show), fresh ? null : state.nextPageToken);
       const seen = new Set(state.videos.map((v) => v.id));
       state.videos.push(...page.videos.filter((v) => !seen.has(v.id)));
       state.nextPageToken = page.nextPageToken;
@@ -307,14 +333,7 @@
   }
 
   function visibleVideos() {
-    let list = sortVideos(state.videos, state.sort);
-    const exclude = state.current?.show?.exclude;
-    if (exclude?.length) {
-      list = list.filter((v) => {
-        const t = v.title.toLowerCase();
-        return !exclude.some((w) => t.includes(w.toLowerCase()));
-      });
-    }
+    let list = sortVideos(state.videos, state.sort).filter(passesFilters);
     if (state.hideWatched) list = list.filter((v) => !state.watched.has(v.id));
     return list;
   }
@@ -338,7 +357,8 @@
         </div>
         <div class="card-body">
           <div class="card-title">${escapeHtml(v.title)}</div>
-          <div class="card-channel">${escapeHtml(v.channel)}</div>
+          <div class="card-channel"><span>${escapeHtml(v.channel)}</span>
+            <button class="hide-channel" title="Never show this channel again">🚫</button></div>
         </div>
         <button class="watch-toggle" title="Toggle watched">✓</button>
         <a class="yt-link" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"
@@ -350,6 +370,10 @@
         toggleWatched(v.id);
       });
       card.querySelector(".yt-link").addEventListener("click", (e) => e.stopPropagation());
+      card.querySelector(".hide-channel").addEventListener("click", (e) => {
+        e.stopPropagation();
+        hideChannel(v.channel);
+      });
       grid.appendChild(card);
     }
 
@@ -408,6 +432,38 @@
     }
   }
 
+  function hideChannel(name) {
+    state.hiddenChannels.add(name);
+    saveHiddenChannels();
+    renderGrid();
+    setStatus(`Hidden "${name}" everywhere — undo in Settings.`);
+  }
+
+  function renderHiddenChannels() {
+    const box = $("#hidden-channels");
+    box.innerHTML = "";
+    if (!state.hiddenChannels.size) {
+      box.innerHTML = `<p class="hint">None yet — tap 🚫 on any video to hide its channel from every section.</p>`;
+      return;
+    }
+    for (const name of [...state.hiddenChannels].sort()) {
+      const row = document.createElement("div");
+      row.className = "hidden-channel-row";
+      const label = document.createElement("span");
+      label.textContent = name;
+      const btn = document.createElement("button");
+      btn.textContent = "Unhide";
+      btn.addEventListener("click", () => {
+        state.hiddenChannels.delete(name);
+        saveHiddenChannels();
+        renderHiddenChannels();
+        renderGrid();
+      });
+      row.append(label, btn);
+      box.appendChild(row);
+    }
+  }
+
   function toggleWatched(id) {
     if (state.watched.has(id)) state.watched.delete(id);
     else state.watched.add(id);
@@ -423,6 +479,7 @@
 
   function openSettings() {
     $("#api-key-input").value = state.apiKey;
+    renderHiddenChannels();
     $("#settings-modal").hidden = false;
   }
 

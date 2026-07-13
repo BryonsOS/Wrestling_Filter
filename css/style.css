@@ -345,6 +345,39 @@ body {
 }
 .settings-box .hint { font-size: 0.78rem; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
 .settings-box .hint a { color: #64b5f6; }
+.settings-section-label { margin-top: 18px; }
+#hidden-channels { max-height: 180px; overflow-y: auto; }
+.hidden-channel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.hidden-channel-row button {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 3px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+.hidden-channel-row button:hover { border-color: var(--accent); }
+
+.card-channel { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.hide-channel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  opacity: 0.45;
+  padding: 2px 4px;
+}
+.hide-channel:hover { opacity: 1; }
+
 .settings-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 .settings-actions button {
   padding: 8px 18px;
