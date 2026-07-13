@@ -19,6 +19,11 @@ this is just a better remote control for YouTube.
 | **WWE / WWF** | Raw (classic & modern), SmackDown, Superstars, Prime Time Wrestling, Saturday Night's Main Event, Tuesday Night Titans, PPVs, Golden Era |
 | **WCW** | Monday Nitro, Thunder, Saturday Night, WorldWide, Main Event, PPVs, NWA/Crockett era, nWo |
 | **ECW** | Hardcore TV, ECW on TNN, PPVs, classic matches |
+| **TNA / Impact** | Weekly PPV era (2002–04), Impact by era, Xplosion, PPVs, X Division classics |
+| **NJPW** | Official full matches, Wrestle Kingdom, G1 Climax, Best of the Super Juniors, classic 80s–90s, NJPW Strong |
+| **MLW** | Fusion, Underground (2002–04), big events |
+| **XWF (2001–02)** | The Universal Studios tapings, matches & segments |
+| **FMW** | Full shows, Onita deathmatches, Hayabusa era |
 | **Territories** | Mid-South/UWF, World Class (WCCW), Memphis, AWA, Georgia, Florida, Stampede, Portland, Continental, Smoky Mountain, World of Sport |
 | **Interviews** | Shoot interviews, Kayfabe Commentaries, legend sit-downs, classic promos, documentaries |
 | **Podcasts** | Something to Wrestle, 83 Weeks, Grilling JR, Kurt Angle Show, Talk Is Jericho, Cornette |
